@@ -358,7 +358,18 @@ Help and version
 
 ## List, category, and item objects
 
-List and category objects contain `id` and `name` strings.
+List objects contain:
+
+`id`, `name`
+:   List identifier and name strings.
+
+`shared`
+:   Boolean. True when the service reports at least one other user on the list.
+
+`modifiedAt`
+:   Optional RFC 3339 UTC timestamp from the service's list modification time.
+
+Category objects contain `id` and `name` strings.
 
 Item objects contain:
 
@@ -367,6 +378,9 @@ Item objects contain:
 
 `checked`
 :   Boolean checked state.
+
+`modifiedAt`
+:   Optional RFC 3339 UTC timestamp from the service's item modification time.
 
 `quantity`
 :   Display quantity string. For a structured service quantity, this is raw

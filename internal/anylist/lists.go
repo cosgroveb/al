@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"math"
 	"strings"
 	"time"
 
@@ -101,7 +102,20 @@ func (c *Client) Lists(ctx context.Context) ([]List, error) {
 }
 
 func listValue(list *pb.ShoppingList) List {
-	return List{ID: list.GetIdentifier(), Name: list.GetName()}
+	return List{
+		ID:         list.GetIdentifier(),
+		Name:       list.GetName(),
+		Shared:     len(list.GetSharedUsers()) > 0,
+		ModifiedAt: serviceTime(list.GetTimestamp()),
+	}
+}
+
+func serviceTime(timestamp float64) string {
+	if timestamp <= 0 {
+		return ""
+	}
+	seconds, fraction := math.Modf(timestamp)
+	return time.Unix(int64(seconds), int64(fraction*float64(time.Second))).UTC().Format(time.RFC3339Nano)
 }
 
 func (c *Client) visibleList(id string) (*pb.ShoppingList, error) {

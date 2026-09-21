@@ -2,8 +2,10 @@ package anylist
 
 // List identifies an account-visible list.
 type List struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Shared     bool   `json:"shared"`
+	ModifiedAt string `json:"modifiedAt,omitempty"`
 }
 
 type Category struct {
@@ -22,6 +24,7 @@ type Item struct {
 	ID              string    `json:"id"`
 	Name            string    `json:"name"`
 	Checked         bool      `json:"checked"`
+	ModifiedAt      string    `json:"modifiedAt,omitempty"`
 	Quantity        string    `json:"quantity"`
 	QuantityDetails *Quantity `json:"quantityDetails,omitempty"`
 	Notes           string    `json:"notes"`

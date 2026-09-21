@@ -75,7 +75,7 @@ func (c *Client) ListState(id string) (ListState, error) {
 }
 
 func itemValue(item *pb.ListItem, group *pb.PBListCategoryGroup) Item {
-	value := Item{ID: item.GetIdentifier(), Name: item.GetName(), Checked: item.GetChecked(), Notes: item.GetDetails()}
+	value := Item{ID: item.GetIdentifier(), Name: item.GetName(), Checked: item.GetChecked(), ModifiedAt: serviceTime(item.GetServerModTime()), Notes: item.GetDetails()}
 	if quantity := item.QuantityPb; quantity != nil {
 		value.QuantityDetails = &Quantity{Amount: quantity.GetAmount(), Unit: quantity.GetUnit(), Raw: quantity.GetRawQuantity()}
 		value.Quantity = quantity.GetRawQuantity()

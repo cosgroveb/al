@@ -364,6 +364,9 @@ func safeError(t *testing.T, err error, code string, unknown bool) *Error {
 
 func TestListsVisibilityAndSelectedCategoryResolution(t *testing.T) {
 	account := fixtureAccount()
+	account.ShoppingListsResponse.NewLists[0].Timestamp = proto.Float64(1700000000.25)
+	account.ShoppingListsResponse.NewLists[0].SharedUsers = []*pb.PBEmailUserIDPair{{UserId: proto.String("other-user")}}
+	account.ShoppingListsResponse.NewLists[0].Items[0].ServerModTime = proto.Float64(1700000001.5)
 	account.ShoppingListsResponse.NewLists = append(account.ShoppingListsResponse.NewLists,
 		&pb.ShoppingList{Identifier: proto.String("nested"), Name: proto.String("Nested")},
 		&pb.ShoppingList{Identifier: proto.String("orphan"), Name: proto.String("Orphan")})
@@ -380,14 +383,14 @@ func TestListsVisibilityAndSelectedCategoryResolution(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(lists, []List{{ID: "list", Name: "Groceries"}, {ID: "nested", Name: "Nested"}}) {
+	if !reflect.DeepEqual(lists, []List{{ID: "list", Name: "Groceries", Shared: true, ModifiedAt: "2023-11-14T22:13:20.25Z"}, {ID: "nested", Name: "Nested"}}) {
 		t.Fatalf("visible lists = %+v", lists)
 	}
 	state, err := client.ListState("list")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.CategoryGroupID != "group" || state.Items[0].CategoryID != "dairy-id" || state.Items[0].Quantity != "two cartons" || state.Items[0].QuantityDetails.Unit != "cartons" {
+	if state.CategoryGroupID != "group" || state.Items[0].CategoryID != "dairy-id" || state.Items[0].Quantity != "two cartons" || state.Items[0].QuantityDetails.Unit != "cartons" || state.Items[0].ModifiedAt != "2023-11-14T22:13:21.5Z" {
 		t.Errorf("mapped state = %+v", state)
 	}
 	if state.Categories[0].Name != "Produce" {
