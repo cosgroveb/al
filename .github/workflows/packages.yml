@@ -35,6 +35,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           ARCH: ${{ matrix.arch }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           test "$(dpkg --print-architecture)" = "$ARCH"
           scripts/build-deb "$VERSION"
       - uses: actions/upload-artifact@v7
