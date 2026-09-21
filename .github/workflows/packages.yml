@@ -28,7 +28,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends ca-certificates git \
-            build-essential debhelper dh-golang golang-go lintian
+            build-essential debhelper dh-golang golang-any lintian
       - uses: actions/checkout@v7
       - name: Build and inspect package
         env:
