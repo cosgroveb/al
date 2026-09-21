@@ -28,7 +28,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends ca-certificates git \
-            build-essential debhelper dh-golang golang-any lintian
+            build-essential debhelper dh-golang golang-any lintian pandoc
       - uses: actions/checkout@v7
       - name: Build and inspect package
         env:
@@ -69,14 +69,26 @@ jobs:
           VERSION: ${{ inputs.version }}
           ARCH: ${{ matrix.arch }}
         run: |
+          # Ubuntu's minimal image excludes documentation from package installation.
+          printf 'path-include=/usr/share/man/*\npath-include=/usr/share/doc/al/*\n' \
+            > /etc/dpkg/dpkg.cfg.d/zz-al-docs
           apt-get update
-          apt-get install -y "./dist/al_${VERSION}-1_${ARCH}.deb"
+          apt-get install -y man-db "./dist/al_${VERSION}-1_${ARCH}.deb"
+          if [ "$(dpkg-divert --truename /usr/bin/man)" = /usr/bin/man.REAL ]; then
+            rm /usr/bin/man
+            dpkg-divert --quiet --remove --rename /usr/bin/man
+          fi
           test "$(dpkg-query -W -f='${Version}' al)" = "$VERSION-1"
           test "$(al --version)" = "al version $VERSION"
           al --help
           al config show --json
+          test "$(man -w al)" = /usr/share/man/man1/al.1.gz
+          test -f /usr/share/doc/al/docs/reference/al.1.md
+          MANPAGER='cat' man al > /tmp/al-manual.txt
+          grep -q 'manage AnyList lists and items' /tmp/al-manual.txt
           apt-get remove -y al
           test ! -e /usr/bin/al
+          test ! -e /usr/share/man/man1/al.1.gz
 
   macos:
     name: Darwin ${{ matrix.arch }}
@@ -94,6 +106,8 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Install documentation tools
+        run: brew install pandoc
       - name: Build and run archive
         env:
           VERSION: ${{ inputs.version }}
@@ -106,6 +120,10 @@ jobs:
           test "$("$binary" --version)" = "al version $VERSION"
           "$binary" --help
           "$binary" config show --json
+          test -f "$RUNNER_TEMP/archive/al_${VERSION}_darwin_${ARCH}/docs/reference/al.1.md"
+          manual_path="$RUNNER_TEMP/archive/al_${VERSION}_darwin_${ARCH}/man"
+          MANPATH="$manual_path" MANPAGER='cat' man al > "$RUNNER_TEMP/al-manual.txt"
+          grep -q 'manage AnyList lists and items' "$RUNNER_TEMP/al-manual.txt"
       - uses: actions/upload-artifact@v7
         with:
           name: darwin-${{ matrix.arch }}

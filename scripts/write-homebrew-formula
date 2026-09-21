@@ -38,13 +38,16 @@ class Al < Formula
 
   def install
     bin.install "al"
-    man1.install "al.1"
-    doc.install "README.md", "third-party-licenses"
+    man1.install "man/man1/al.1"
+    doc.install "README.md", "docs", "third-party-licenses"
   end
 
   test do
     assert_equal "al version #{version}", shell_output("#{bin}/al --version").strip
     assert_match '"ok":true', shell_output("#{bin}/al config show --json")
+    assert_path_exists man1/"al.1"
+    assert_path_exists doc/"docs/reference/al.1.md"
+    assert_match "ANYLIST_EMAIL", shell_output("MANPATH=#{man} MANPAGER=cat man al").gsub(/.\\x08/, "")
   end
 end
 EOF

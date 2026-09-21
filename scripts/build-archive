@@ -27,7 +27,9 @@ CGO_ENABLED=0 GOOS=darwin GOARCH="$arch" go build -buildvcs=false -trimpath \
 go mod vendor -o "$work_dir/vendor"
 scripts/collect-licenses "$work_dir/vendor" "$archive_root/third-party-licenses"
 cp README.md "$archive_root/"
-cp debian/al.1 "$archive_root/"
+cp -R docs "$archive_root/"
+make man
+cp -R build/docs/man "$archive_root/"
 archive="$dist_dir/al_${version}_darwin_${arch}.tar.gz"
 COPYFILE_DISABLE=1 tar -C "$work_dir" -czf "$archive" "$(basename "$archive_root")"
 printf '%s\n' "$archive"

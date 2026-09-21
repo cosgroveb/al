@@ -1,6 +1,7 @@
 /al
 /dist/
 /_build/
+/build/docs/
 /debian/.debhelper/
 /debian/al/
 /debian/*.debhelper

@@ -9,6 +9,7 @@ export DH_GOLANG_INSTALL_EXTRA = vendor
 	dh $@ --buildsystem=golang --builddirectory=_build
 
 override_dh_auto_build:
+	$(MAKE) man
 	dh_auto_build -- -ldflags "-X github.com/cosgroveb/al/internal/cli.Version=$(DEB_VERSION_UPSTREAM)"
 
 override_dh_auto_test:
@@ -16,3 +17,10 @@ override_dh_auto_test:
 
 override_dh_auto_install:
 	dh_auto_install -- --no-source
+
+override_dh_compress:
+	dh_compress -X.md
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build/docs

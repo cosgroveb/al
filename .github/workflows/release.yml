@@ -104,6 +104,9 @@ jobs:
           brew install cosgroveb/tap/al
           brew test cosgroveb/tap/al
           brew audit --strict cosgroveb/tap/al
+          man -w al
+          MANPAGER='cat' man al > "$RUNNER_TEMP/al-manual.txt"
+          grep -q 'manage AnyList lists and items' "$RUNNER_TEMP/al-manual.txt"
       - name: Publish formula
         working-directory: homebrew-tap
         run: git push origin HEAD:main
