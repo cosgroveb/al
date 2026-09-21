@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: version
+        run: |
+          version="$(scripts/release-version "$GITHUB_REF_NAME")"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+
+  packages:
+    needs: version
+    uses: ./.github/workflows/packages.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+
+  publish:
+    needs: packages
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish and verify release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum ./* > SHA256SUMS)
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --verify-tag \
+              --title "$GITHUB_REF_NAME" --generate-notes dist/*
+          fi
+          gh release download "$GITHUB_REF_NAME" --dir published
+          diff <(find dist -maxdepth 1 -type f -printf '%f\n' | sort) \
+            <(find published -maxdepth 1 -type f -printf '%f\n' | sort)
+          (cd published && sha256sum --check SHA256SUMS)
+          cmp dist/SHA256SUMS published/SHA256SUMS
+
+  homebrew:
+    needs: [version, publish]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Require tap token
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: test -n "$HOMEBREW_TAP_TOKEN"
+      - uses: actions/checkout@v7
+        with:
+          repository: cosgroveb/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+      - name: Generate formula from published assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --dir published
+          (cd published && shasum -a 256 --check SHA256SUMS)
+          arm64_sha="$(shasum -a 256 "published/al_${VERSION}_darwin_arm64.tar.gz" | awk '{print $1}')"
+          amd64_sha="$(shasum -a 256 "published/al_${VERSION}_darwin_amd64.tar.gz" | awk '{print $1}')"
+          scripts/write-homebrew-formula homebrew-tap/Formula/al.rb "$VERSION" \
+            "$arm64_sha" "$amd64_sha"
+      - name: Commit formula for installation test
+        working-directory: homebrew-tap
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          git add Formula/al.rb
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Update al to $VERSION"
+      - name: Install and test through Homebrew
+        run: |
+          brew tap --custom-remote cosgroveb/tap "$GITHUB_WORKSPACE/homebrew-tap"
+          if brew command trust >/dev/null 2>&1; then
+            brew trust --formula cosgroveb/tap/al
+          fi
+          brew install cosgroveb/tap/al
+          brew test cosgroveb/tap/al
+          brew audit --strict cosgroveb/tap/al
+      - name: Publish formula
+        working-directory: homebrew-tap
+        run: git push origin HEAD:main

@@ -3,16 +3,38 @@
 Manage AnyList lists and items from a Go CLI. `al` prints styled terminal output
 by default and one JSON document with `--json`.
 
-## Install and configure
+## Install
 
-Install from this checkout with Go 1.25.0 or later:
+Install on macOS through Homebrew:
 
 ```sh
-go install .
+brew install cosgroveb/tap/al
+al --version
 al --help
 ```
 
-For a local binary, run `go build -o al .` and use `./al`.
+For Debian or Ubuntu on amd64 or arm64, download a release package, verify its
+checksum, and install it with apt:
+
+```sh
+version=0.1.0
+arch="$(dpkg --print-architecture)"
+package="al_${version}-1_${arch}.deb"
+release="https://github.com/cosgroveb/al/releases/download/v${version}"
+curl -fLO "$release/$package"
+curl -fLO "$release/SHA256SUMS"
+sha256sum --ignore-missing --check SHA256SUMS
+sudo apt install "./$package"
+al --version
+```
+
+Packages include the executable, man page, and dependency license notices.
+CI verifies installation on Debian trixie and Ubuntu noble. To upgrade, use
+`brew upgrade cosgroveb/tap/al` on macOS or repeat the apt steps with the new
+[release version](https://github.com/cosgroveb/al/releases). Linux packages come
+from GitHub releases, without an apt repository for automatic updates.
+
+## Configure
 
 Set `ANYLIST_EMAIL` and `ANYLIST_PASSWORD` in the process environment before
 using network commands. `al` keeps passwords and authentication tokens in
@@ -224,7 +246,7 @@ Quantity writes use the service's raw-text representation. They do not implement
 numeric quantity totals or unit conversion. Category resolution follows the
 list's active settings and reports ambiguity when it cannot choose one group.
 
-Use the Makefile for development:
+Use Go 1.25.0 or later and the Makefile for development:
 
 ```sh
 make help
@@ -259,3 +281,22 @@ protoc --go_out=. --go_opt=paths=source_relative internal/anylistpb/anylist.prot
 ```
 
 Put `protoc-gen-go` on `PATH` before running `protoc`.
+
+## Releases
+
+Push an unused stable `vMAJOR.MINOR.PATCH` tag after main CI passes. The release
+workflow builds Darwin amd64/arm64 archives and Linux amd64/arm64 Debian
+packages. Debian builds use sid for its Go toolchain, then CI installs, runs,
+and removes each package on trixie and noble. Linux executables use
+`CGO_ENABLED=0` so the same package works across these distributions.
+
+The workflow publishes those files, Debian source artifacts, and `SHA256SUMS`
+to the GitHub release. It verifies the published checksums, generates
+`Formula/al.rb` in `cosgroveb/homebrew-tap`, and installs, tests, and audits the
+formula before pushing it. Repository secret `HOMEBREW_TAP_TOKEN` needs write
+access to that tap. Consumers do not need a GitHub token.
+
+For local packaging checks, run `scripts/build-archive VERSION ARCH` on macOS
+or `scripts/build-deb VERSION` in a sid environment with the build dependencies
+from `debian/control`, plus Git and lintian. Both scripts write to `dist/`.
+Packaging vendors modules in a temporary directory. The checkout stays clean.

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        run: |
+          files="$(gofmt -l .)"
+          test -z "$files" || { printf '%s\n' "$files"; exit 1; }
+      - run: go vet ./...
+      - run: make test
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+      - name: Check release scripts
+        run: |
+          for script in scripts/*; do bash -n "$script"; done
+          shellcheck scripts/*
+
+  packages:
+    uses: ./.github/workflows/packages.yml
+    with:
+      version: 0.0.0

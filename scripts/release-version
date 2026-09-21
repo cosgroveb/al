@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# != 1 || ! $1 =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+  printf 'release tag must be vMAJOR.MINOR.PATCH\n' >&2
+  exit 2
+fi
+printf '%s\n' "${1#v}"

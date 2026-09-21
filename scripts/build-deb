@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# != 1 ]]; then
+  printf 'usage: %s VERSION\n' "$0" >&2
+  exit 2
+fi
+version="$1"
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"$root_dir/scripts/release-version" "v$version" >/dev/null
+arch="$(dpkg --print-architecture)"
+case "$arch" in
+  amd64|arm64) ;;
+  *) printf 'unsupported Debian architecture: %s\n' "$arch" >&2; exit 2 ;;
+esac
+dist_dir="${DIST_DIR:-$root_dir/dist}"
+work_dir="$(mktemp -d "${TMPDIR:-/tmp}/al-deb.XXXXXX")"
+trap 'rm -rf -- "$work_dir"' EXIT
+source_dir="$work_dir/al-$version"
+mkdir -p "$dist_dir" "$source_dir"
+
+cd "$root_dir"
+git ls-files -z | tar --null -T - -cf - | tar -C "$source_dir" -xf -
+cd "$source_dir"
+go mod vendor
+scripts/collect-licenses vendor third-party-licenses
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$root_dir" log -1 --format=%ct)}"
+tar --sort=name --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner \
+  --exclude="al-$version/debian" -C "$work_dir" -cf - "al-$version" \
+  | gzip -n > "$work_dir/al_${version}.orig.tar.gz"
+date_rfc="$(date --date="@$SOURCE_DATE_EPOCH" -R)"
+printf 'al (%s-1) unstable; urgency=medium\n\n  * Release %s.\n\n -- Brian Cosgrove <cosgroveb@gmail.com>  %s\n' \
+  "$version" "$version" "$date_rfc" > debian/changelog
+dpkg-buildpackage -us -uc >&2
+lintian --fail-on error,warning "$work_dir/al_${version}-1_${arch}.changes" >&2
+cp "$work_dir/al_${version}-1_${arch}.deb" "$dist_dir/"
+if [[ $arch == amd64 ]]; then
+  cp "$work_dir/al_${version}.orig.tar.gz" "$work_dir/al_${version}-1.debian.tar.xz" \
+    "$work_dir/al_${version}-1.dsc" "$dist_dir/"
+fi
+printf '%s\n' "$dist_dir/al_${version}-1_${arch}.deb"

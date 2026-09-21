@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# != 4 ]]; then
+  printf 'usage: %s OUTPUT VERSION ARM64_SHA256 AMD64_SHA256\n' "$0" >&2
+  exit 2
+fi
+output="$1"
+version="$2"
+arm64_sha="$3"
+amd64_sha="$4"
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"$root_dir/scripts/release-version" "v$version" >/dev/null
+for checksum in "$arm64_sha" "$amd64_sha"; do
+  [[ $checksum =~ ^[0-9a-f]{64}$ ]] || { printf 'invalid SHA-256 checksum\n' >&2; exit 2; }
+done
+
+mkdir -p "$(dirname "$output")"
+cat > "$output" <<EOF
+class Al < Formula
+  desc "Command-line client for AnyList lists"
+  homepage "https://github.com/cosgroveb/al"
+  license :cannot_represent
+
+  depends_on :macos
+
+  on_macos do
+    on_arm do
+      url "https://github.com/cosgroveb/al/releases/download/v$version/al_${version}_darwin_arm64.tar.gz"
+      sha256 "$arm64_sha"
+    end
+
+    on_intel do
+      url "https://github.com/cosgroveb/al/releases/download/v$version/al_${version}_darwin_amd64.tar.gz"
+      sha256 "$amd64_sha"
+    end
+  end
+
+  def install
+    bin.install "al"
+    man1.install "al.1"
+    doc.install "README.md", "third-party-licenses"
+  end
+
+  test do
+    assert_equal "al version #{version}", shell_output("#{bin}/al --version").strip
+    assert_match '"ok":true', shell_output("#{bin}/al config show --json")
+  end
+end
+EOF

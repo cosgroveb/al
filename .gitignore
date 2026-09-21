@@ -1,1 +1,9 @@
 /al
+/dist/
+/_build/
+/debian/.debhelper/
+/debian/al/
+/debian/*.debhelper
+/debian/*.log
+/debian/*.substvars
+/debian/files

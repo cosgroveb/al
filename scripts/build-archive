@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# != 2 ]]; then
+  printf 'usage: %s VERSION GOARCH\n' "$0" >&2
+  exit 2
+fi
+version="$1"
+arch="$2"
+case "$arch" in
+  amd64|arm64) ;;
+  *) printf 'unsupported Darwin architecture: %s\n' "$arch" >&2; exit 2 ;;
+esac
+
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"$root_dir/scripts/release-version" "v$version" >/dev/null
+dist_dir="${DIST_DIR:-$root_dir/dist}"
+work_dir="$(mktemp -d "${TMPDIR:-/tmp}/al-archive.XXXXXX")"
+trap 'rm -rf -- "$work_dir"' EXIT
+
+archive_root="$work_dir/al_${version}_darwin_${arch}"
+mkdir -p "$dist_dir" "$archive_root"
+cd "$root_dir"
+CGO_ENABLED=0 GOOS=darwin GOARCH="$arch" go build -buildvcs=false -trimpath \
+  -ldflags "-s -w -X github.com/cosgroveb/al/internal/cli.Version=$version" \
+  -o "$archive_root/al" .
+go mod vendor -o "$work_dir/vendor"
+scripts/collect-licenses "$work_dir/vendor" "$archive_root/third-party-licenses"
+cp README.md "$archive_root/"
+cp debian/al.1 "$archive_root/"
+archive="$dist_dir/al_${version}_darwin_${arch}.tar.gz"
+COPYFILE_DISABLE=1 tar -C "$work_dir" -czf "$archive" "$(basename "$archive_root")"
+printf '%s\n' "$archive"

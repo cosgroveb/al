@@ -1,0 +1,112 @@
+name: Packages
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  debian:
+    name: Debian ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Install package tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git \
+            build-essential debhelper dh-golang golang-go lintian
+      - uses: actions/checkout@v7
+      - name: Build and inspect package
+        env:
+          VERSION: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          test "$(dpkg --print-architecture)" = "$ARCH"
+          scripts/build-deb "$VERSION"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: deb-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+  install-debian:
+    needs: debian
+    name: Install ${{ matrix.suite }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.suite }}
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [debian:trixie, ubuntu:noble]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: deb-${{ matrix.arch }}
+          path: dist
+      - name: Install, run, and remove package
+        env:
+          VERSION: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          apt-get update
+          apt-get install -y "./dist/al_${VERSION}-1_${ARCH}.deb"
+          test "$(dpkg-query -W -f='${Version}' al)" = "$VERSION-1"
+          test "$(al --version)" = "al version $VERSION"
+          al --help
+          al config show --json
+          apt-get remove -y al
+          test ! -e /usr/bin/al
+
+  macos:
+    name: Darwin ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: macos-15-intel
+          - arch: arm64
+            runner: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Build and run archive
+        env:
+          VERSION: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          scripts/build-archive "$VERSION" "$ARCH"
+          mkdir "$RUNNER_TEMP/archive"
+          tar -xzf "dist/al_${VERSION}_darwin_${ARCH}.tar.gz" -C "$RUNNER_TEMP/archive"
+          binary="$RUNNER_TEMP/archive/al_${VERSION}_darwin_${ARCH}/al"
+          test "$("$binary" --version)" = "al version $VERSION"
+          "$binary" --help
+          "$binary" config show --json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: darwin-${{ matrix.arch }}
+          path: dist/*.tar.gz
+          if-no-files-found: error

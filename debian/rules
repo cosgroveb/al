@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+export CGO_ENABLED = 0
+export DH_GOLANG_INSTALL_EXTRA = vendor
+
+%:
+	dh $@ --buildsystem=golang --builddirectory=_build
+
+override_dh_auto_build:
+	dh_auto_build -- -ldflags "-X github.com/cosgroveb/al/internal/cli.Version=$(DEB_VERSION_UPSTREAM)"
+
+override_dh_auto_test:
+	dh_auto_test -- -shuffle=on
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source

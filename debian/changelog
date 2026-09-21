@@ -1,0 +1,5 @@
+al (0.1.0-1) UNRELEASED; urgency=medium
+
+  * Package the AnyList command-line client.
+
+ -- Brian Cosgrove <cosgroveb@gmail.com>  Mon, 21 Sep 2026 00:00:00 +0000

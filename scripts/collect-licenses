@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# != 2 ]]; then
+  printf 'usage: %s VENDOR_DIRECTORY OUTPUT_DIRECTORY\n' "$0" >&2
+  exit 2
+fi
+
+vendor_dir="$1"
+output_dir="$2"
+mkdir -p "$output_dir"
+cp "$vendor_dir/modules.txt" "$output_dir/modules.txt"
+while IFS= read -r -d '' source; do
+  relative="${source#"$vendor_dir"/}"
+  mkdir -p "$output_dir/$(dirname "$relative")"
+  cp "$source" "$output_dir/$relative"
+done < <(find "$vendor_dir" -type f \( -iname 'LICENSE*' -o -iname 'COPYING*' \
+  -o -iname 'NOTICE*' -o -iname 'AUTHORS*' -o -iname 'COPYRIGHT*' \) -print0)
+
+test -s "$output_dir/google.golang.org/protobuf/LICENSE"
+test -s "$output_dir/github.com/spf13/cobra/LICENSE.txt"
+test -s "$output_dir/charm.land/lipgloss/v2/LICENSE"

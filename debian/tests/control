@@ -1,0 +1,3 @@
+Test-Command: al --version && al --help && al config show --json
+Depends: @
+Restrictions: superficial

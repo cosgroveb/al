@@ -1,0 +1,26 @@
+Source: al
+Standards-Version: 4.7.4
+Maintainer: Brian Cosgrove <cosgroveb@gmail.com>
+Section: utils
+Build-Depends:
+ debhelper-compat (= 14),
+ dh-sequence-golang,
+ golang-any (>= 2:1.25~),
+Vcs-Browser: https://github.com/cosgroveb/al
+Vcs-Git: https://github.com/cosgroveb/al.git
+Homepage: https://github.com/cosgroveb/al
+Rules-Requires-Root: no
+XS-Go-Import-Path: github.com/cosgroveb/al
+
+Package: al
+Architecture: any
+Depends:
+ ca-certificates,
+ ${misc:Depends},
+Built-Using:
+ ${misc:Built-Using},
+Description: command-line client for AnyList lists
+ Read and manage AnyList lists, items, and categories from a terminal.
+ Supports JSON input and output for scripts. Authentication uses
+ ANYLIST_EMAIL and ANYLIST_PASSWORD from the process environment.
+Static-Built-Using: ${misc:Static-Built-Using}

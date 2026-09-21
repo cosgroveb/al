@@ -1,0 +1,18 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: al
+Upstream-Contact: Brian Cosgrove <cosgroveb@gmail.com>
+Source: https://github.com/cosgroveb/al
+
+Files: *
+Copyright: 2026 Brian Cosgrove
+License: unlicensed
+ No upstream license grant is declared for this project.
+
+Files: vendor/*
+       third-party-licenses/*
+Copyright: See the individual copyright statements in third-party-licenses/.
+License: bundled-dependencies
+ The vendored Go dependencies retain their own licenses and copyright
+ statements. The complete files are installed under
+ /usr/share/doc/al/third-party-licenses, preserving each module path.
+ third-party-licenses/modules.txt records the bundled module versions.
