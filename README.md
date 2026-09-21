@@ -39,6 +39,8 @@ al add --list "Groceries" --quantity "2 cartons" milk
 al items --list "Groceries" --json
 ```
 
+Use `al ls` as a short alias for `al lists`.
+
 ## Documentation
 
 | Need | Read |

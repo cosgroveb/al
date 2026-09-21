@@ -9,7 +9,7 @@ import (
 
 func registerListCommands(root *cobra.Command, a *app) {
 	lists := &cobra.Command{
-		Use: "lists", Short: "Show account-visible lists", Args: cobra.NoArgs,
+		Use: "lists", Aliases: []string{"ls"}, Short: "Show account-visible lists", Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, lists, err := a.connect(cmd.Context())
 			if err != nil {

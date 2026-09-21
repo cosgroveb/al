@@ -26,6 +26,8 @@ Select a list, change its contents, and verify the resulting state.
    al lists
    ```
 
+   `al ls` is a short alias for the same command.
+
 2. Replace `LIST_ID` with that ID and inspect its items:
 
    ```sh

@@ -27,7 +27,7 @@ Install `al` and its manual through Homebrew or a release Debian package.
    Run these commands in an empty directory. Packages support `amd64` and `arm64`.
 
    ```sh
-   version=0.1.0
+   version=0.1.1
    arch="$(dpkg --print-architecture)"
    package="al_${version}-1_${arch}.deb"
    release="https://github.com/cosgroveb/al/releases/download/v${version}"

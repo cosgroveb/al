@@ -48,7 +48,7 @@ protocol is unofficial and can change independently of this program.
 
 ## Lists
 
-**al lists**
+**al lists**, **al ls**
 :   Shows lists reachable from the account's root folder, including nested
     folders. Each result contains the list name and identifier.
 
