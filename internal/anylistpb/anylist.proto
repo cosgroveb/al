@@ -1,0 +1,221 @@
+syntax = "proto2";
+
+package pcov.proto;
+
+option go_package = "github.com/cosgroveb/al/internal/anylistpb";
+
+message ShoppingList {
+  required string identifier = 1;
+  optional double timestamp = 2;
+  optional string name = 3;
+  repeated ListItem items = 4;
+  optional string creator = 5;
+  repeated PBEmailUserIDPair sharedUsers = 7;
+  optional uint64 logicalClockTime = 10;
+  optional bool allowsMultipleListCategoryGroups = 16;
+  optional int32 listItemSortOrder = 17;
+  optional int32 newListItemPosition = 18;
+  enum ListItemSortOrder {
+    Manual = 0;
+    Alphabetical = 1;
+  }
+  enum NewListItemPosition {
+    Bottom = 0;
+    Top = 1;
+  }
+}
+
+message PBItemQuantity {
+  optional string amount = 1;
+  optional string unit = 2;
+  optional string rawQuantity = 3;
+}
+
+message ListItem {
+  required string identifier = 1;
+  optional double serverModTime = 2;
+  optional string listId = 3;
+  optional string name = 4;
+  optional string details = 5;
+  optional bool checked = 6;
+  optional string category = 11;
+  optional string userId = 12;
+  optional string categoryMatchId = 13;
+  repeated PBListItemCategoryAssignment categoryAssignments = 20;
+  optional PBItemQuantity quantityPb = 21;
+  optional int32 manualSortIndex = 17;
+  optional string deprecatedQuantity = 18;
+}
+
+message PBListFolderItem {
+  required string identifier = 1;
+  optional int32 itemType = 2;
+  enum ItemType {
+    ListType = 0;
+    FolderType = 1;
+  }
+}
+
+message PBListFolder {
+  required string identifier = 1;
+  optional double timestamp = 2;
+  optional string name = 3;
+  repeated PBListFolderItem items = 4;
+}
+
+message PBListFoldersResponse {
+  optional string listDataId = 1;
+  optional string rootFolderId = 2;
+  optional bool includesAllFolders = 3;
+  repeated PBListFolder listFolders = 4;
+  repeated string deletedFolderIds = 5;
+  optional bool hasMigratedListOrdering = 6;
+}
+
+message PBListCategoryGroupResponse {
+  optional PBListCategoryGroup categoryGroup = 1;
+  repeated string deletedCategoryIds = 2;
+}
+
+message ShoppingListsResponse {
+  repeated ShoppingList newLists = 1;
+  repeated ShoppingList modifiedLists = 2;
+  repeated string unmodifiedIds = 3;
+  repeated string unknownIds = 4;
+  repeated string orderedIds = 5;
+  repeated PBListResponse listResponses = 6;
+}
+
+message PBListResponse {
+  optional string listId = 1;
+  optional bool isFullSync = 2;
+  optional uint64 logicalTimestamp = 3;
+  repeated PBListCategoryGroupResponse categoryGroupResponses = 7;
+  repeated string deletedCategoryGroupIds = 8;
+  repeated PBStoreFilter storeFilters = 11;
+  repeated string deletedStoreFilterIds = 12;
+}
+
+message PBStoreFilter {
+  required string identifier = 1;
+  optional string listId = 3;
+  optional string listCategoryGroupId = 8;
+}
+
+message PBListCategory {
+  optional string identifier = 1;
+  optional uint64 logicalTimestamp = 2;
+  optional string categoryGroupId = 3;
+  optional string listId = 4;
+  optional string name = 5;
+  optional string icon = 6;
+  optional string systemCategory = 7;
+  optional int32 sortIndex = 9;
+}
+
+message PBListCategoryGroup {
+  optional string identifier = 1;
+  optional uint64 logicalTimestamp = 2;
+  optional string listId = 3;
+  optional string name = 4;
+  repeated PBListCategory categories = 5;
+  optional string defaultCategoryId = 8;
+  optional uint64 categoriesLogicalTimestamp = 6;
+  optional uint64 deletedCategoriesLogicalTimestamp = 7;
+}
+
+message PBListItemCategoryAssignment {
+  optional string identifier = 1;
+  optional string categoryGroupId = 2;
+  optional string categoryId = 3;
+}
+
+message PBOperationMetadata {
+  optional string operationId = 1;
+  optional string handlerId = 2;
+  optional string userId = 3;
+  optional int32 operationClass = 4;
+  optional int32 operationVersion = 5;
+  enum OperationClass {
+    UndefinedOperation = 0;
+    StoreOperation = 1;
+    StoreFilterOperation = 2;
+    ListCategoryOperation = 3;
+    ListCategoryGroupOperation = 4;
+    ListCategorizationRuleOperation = 5;
+  }
+}
+
+message PBListOperation {
+  optional PBOperationMetadata metadata = 1;
+  optional string listId = 2;
+  optional string listItemId = 3;
+  optional string updatedValue = 4;
+  optional string originalValue = 5;
+  optional ListItem listItem = 6;
+  optional ShoppingList list = 7;
+  optional string listFolderId = 8;
+  optional PBListCategoryGroup updatedCategoryGroup = 19;
+}
+
+message PBListOperationList {
+  repeated PBListOperation operations = 1;
+}
+
+message PBShareListOperationResponse {
+  optional PBEmailUserIDPair sharedUser = 1;
+  optional double originalListTimestamp = 2;
+  optional double updatedListTimestamp = 3;
+  optional int32 statusCode = 4;
+  optional string errorTitle = 5;
+  optional string errorMessage = 6;
+}
+
+message PBListFolderOperation {
+  optional PBOperationMetadata metadata = 1;
+  optional string listDataId = 2;
+  repeated PBListFolderItem folderItems = 4;
+  optional string originalParentFolderId = 5;
+}
+
+message PBListFolderOperationList {
+  repeated PBListFolderOperation operations = 1;
+}
+
+message PBListSettings {
+  required string identifier = 1;
+  optional string userId = 2;
+  optional string listId = 3;
+  optional double timestamp = 4;
+  optional string storeFilterId = 20;
+  optional string listCategoryGroupId = 27;
+}
+
+message PBListSettingsList {
+  repeated PBListSettings settings = 2;
+}
+
+message PBListSettingsOperation {
+  optional PBOperationMetadata metadata = 1;
+  optional PBListSettings updatedSettings = 2;
+}
+
+message PBListSettingsOperationList {
+  repeated PBListSettingsOperation operations = 1;
+}
+
+message PBEditOperationResponse {
+  repeated string processedOperations = 3;
+}
+
+message PBEmailUserIDPair {
+  optional string email = 1;
+  optional string userId = 2;
+  optional string fullName = 3;
+}
+
+message PBUserDataResponse {
+  optional ShoppingListsResponse shoppingListsResponse = 1;
+  optional PBListFoldersResponse listFoldersResponse = 2;
+  optional PBListSettingsList listSettingsResponse = 9;
+}
