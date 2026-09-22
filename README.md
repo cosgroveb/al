@@ -1,5 +1,14 @@
 # al
 
+[![CI](https://github.com/cosgroveb/al/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cosgroveb/al/actions/workflows/ci.yml)
+[![Release workflow](https://github.com/cosgroveb/al/actions/workflows/release.yml/badge.svg)](https://github.com/cosgroveb/al/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/cosgroveb/al?sort=semver)](https://github.com/cosgroveb/al/releases/latest)
+[![Go version](https://img.shields.io/github/go-mod/go-version/cosgroveb/al)](go.mod)
+[![Go Reference](https://pkg.go.dev/badge/github.com/cosgroveb/al.svg)](https://pkg.go.dev/github.com/cosgroveb/al)
+[![License](https://img.shields.io/github/license/cosgroveb/al)](LICENSE)
+[![Homebrew tap](https://img.shields.io/badge/Homebrew-tap-FBB040?logo=homebrew&logoColor=white)](docs/how-to/install.md#how-to-install-on-macos)
+[![Debian and Ubuntu packages](https://img.shields.io/badge/Debian%2FUbuntu-.deb-A81D33?logo=debian&logoColor=white)](docs/how-to/install.md#how-to-install-on-debian-or-ubuntu)
+
 Manage AnyList lists and items from a Go CLI. `al` prints styled terminal
 output by default and one JSON document with `--json`.
 
