@@ -18,6 +18,16 @@ apt](docs/how-to/install.md#how-to-install-on-debian-or-ubuntu).
 Packages support amd64 and arm64. Both installation methods include the
 manual and these docs.
 
+With Go 1.25.0 or later:
+
+```sh
+go install github.com/cosgroveb/al@latest
+```
+
+See [Go installation](docs/how-to/install.md#how-to-install-with-go) for
+executable location and manual availability. Tagged releases also appear on
+[pkg.go.dev](https://pkg.go.dev/github.com/cosgroveb/al).
+
 ## Authenticate
 
 Provide `ANYLIST_EMAIL` and `ANYLIST_PASSWORD` through the process environment,
@@ -68,3 +78,7 @@ tasks](docs/how-to/develop.md) for tooling, generation, and package checks.
 
 `al` uses AnyList's unofficial protocol. Service changes can break
 compatibility. See [protocol limits](docs/explanation/behavior.md).
+
+## License
+
+Copyright 2026 Brian Cosgrove. Licensed under [Apache 2.0](LICENSE).

@@ -1,3 +1,4 @@
+// Command al manages AnyList lists and items.
 package main
 
 import (

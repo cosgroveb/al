@@ -56,6 +56,29 @@ jobs:
           (cd published && sha256sum --check SHA256SUMS)
           cmp dist/SHA256SUMS published/SHA256SUMS
 
+  go-module:
+    name: Publish Go module
+    needs: [version, publish]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Request indexing and verify Go installation
+        env:
+          GOPROXY: https://proxy.golang.org
+          GOBIN: ${{ runner.temp }}/go-bin
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          go mod download "github.com/cosgroveb/al@v$VERSION"
+          cmp LICENSE "$(go env GOMODCACHE)/github.com/cosgroveb/al@v$VERSION/LICENSE"
+          go install "github.com/cosgroveb/al@v$VERSION"
+          test "$("$GOBIN/al" --version)" = "al version $VERSION"
+          "$GOBIN/al" --help
+          "$GOBIN/al" config show --json
+
   homebrew:
     needs: [version, publish]
     runs-on: macos-15

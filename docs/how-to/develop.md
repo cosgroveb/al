@@ -116,8 +116,17 @@ Build a local executable, run the checks, and publish versioned packages.
    gh release view v0.1.0
    ```
 
-   Require the package builds, published checksum verification, and Homebrew
-   installation, test, audit, and tap push to pass. The release contains Darwin
-   archives, Debian packages and source artifacts, and `SHA256SUMS`.
+   Require the package builds, published checksum verification, Go module
+   installation, and Homebrew installation, test, audit, and tap push to pass.
+   The release contains Darwin archives, Debian packages and source artifacts,
+   and `SHA256SUMS`.
+
+   The Go module job downloads the tag through `proxy.golang.org`, then installs
+   and runs the command. That request makes the version available for
+   [pkg.go.dev indexing](https://pkg.go.dev/about#adding-a-package). Indexing
+   can take a few minutes. Check the version at
+   `https://pkg.go.dev/github.com/cosgroveb/al@v0.1.0`, substituting the release
+   tag. Publish a new tag for corrections. Published Go module versions are
+   immutable.
 5. Follow [the installation guide](install.md) for the published version and
    verify both the executable and manual.

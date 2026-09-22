@@ -1,6 +1,6 @@
 # How to install and upgrade al
 
-Install `al` and its manual through Homebrew or a release Debian package.
+Install `al` through Homebrew, a release Debian package, or Go.
 
 ## How to install on macOS
 
@@ -27,7 +27,7 @@ Install `al` and its manual through Homebrew or a release Debian package.
    Run these commands in an empty directory. Packages support `amd64` and `arm64`.
 
    ```sh
-   version=0.1.1
+   version=0.1.4
    arch="$(dpkg --print-architecture)"
    package="al_${version}-1_${arch}.deb"
    release="https://github.com/cosgroveb/al/releases/download/v${version}"
@@ -55,6 +55,24 @@ Install `al` and its manual through Homebrew or a release Debian package.
    man al
    ```
 
+## How to install with Go
+
+1. With Go 1.25.0 or later, install the latest tagged release:
+
+   ```sh
+   go install github.com/cosgroveb/al@latest
+   ```
+
+   Go installs the executable in `GOBIN`, or `$(go env GOPATH)/bin` when
+   `GOBIN` is unset. Put that directory on `PATH` to run `al`.
+2. Run `al --version` and `al --help` to verify installation.
+   Go installs the executable only.
+   Use the [online CLI reference](../reference/README.md), or install through
+   Homebrew or the Debian package for `man al`.
+
+   [pkg.go.dev](https://pkg.go.dev/github.com/cosgroveb/al) lists tagged
+   versions and the module's documentation.
+
 ## How to upgrade
 
 1. On macOS, refresh the tap and upgrade:
@@ -66,6 +84,8 @@ Install `al` and its manual through Homebrew or a release Debian package.
 
    On Debian or Ubuntu, repeat the download, checksum, and apt steps with the
    new release version. There is no apt repository for automatic updates.
+
+   For a Go installation, repeat `go install github.com/cosgroveb/al@latest`.
 
 2. Run `al --version` and confirm the requested version.
 
